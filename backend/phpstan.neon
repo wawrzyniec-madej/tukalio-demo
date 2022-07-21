@@ -1,0 +1,7 @@
+parameters:
+    level: max
+    paths:
+        - src
+    checkGenericClassInNonGenericObjectType: false
+rules:
+    - Ergebnis\PHPStan\Rules\Files\DeclareStrictTypesRule

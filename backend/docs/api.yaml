@@ -1,0 +1,199 @@
+openapi: 3.0.0
+info:
+  description: Api documentation for shopping list api
+  version: 1.0.0
+  title: Shopping list api
+  contact:
+    name: test
+paths:
+  /api/shoppingList:
+    post:
+      summary: Create shopping list
+      responses:
+        '201':
+          $ref: '#/components/responses/ResultResponse'
+      description: Creates a new shopping list
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+  '/api/shoppingList/{hash}':
+    parameters:
+      - in: path
+        name: hash
+        schema:
+          type: string
+        required: true
+    get:
+      summary: Get shopping list by hash
+      responses:
+        '200':
+          $ref: '#/components/responses/ResultResponse'
+      description: Returns a shopping list by hash
+    delete:
+      summary: Delete shopping list
+      responses:
+        '200':
+          description: Deleted successfully
+      description: Deletes shopping list and items connected to it
+    patch:
+      summary: Update shopping list
+      responses:
+        '200':
+          $ref: '#/components/responses/ResultResponse'
+      description: Applies partial patch for a shopping list
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+  '/api/shoppingList/{hash}/changeHash':
+    parameters:
+      - in: path
+        name: hash
+        schema:
+          type: string
+        required: true
+    post:
+      summary: Change shopping list hash
+      responses:
+        '200':
+          $ref: '#/components/responses/ResultResponse'
+      description: Changes shopping list hash
+  '/api/shoppingList/{hash}/shoppingListItem':
+    parameters:
+      - in: path
+        name: hash
+        schema:
+          type: string
+        required: true
+    post:
+      summary: Create shopping list item
+      responses:
+        '201':
+          $ref: '#/components/responses/ResultResponse'
+      description: Creates shopping list item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                quantity:
+                  type: integer
+              required:
+                - name
+                - quantity
+  '/api/shoppingList/{hash}/shoppingListItem/{id}':
+    parameters:
+      - in: path
+        name: hash
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+    patch:
+      summary: Update shopping list item
+      responses:
+        '200':
+          $ref: '#/components/responses/ResultResponse'
+      description: Applies partial update to shopping list item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                quantity:
+                  type: number
+                taken:
+                  type: boolean
+    delete:
+      summary: Delete shopping list item
+      responses:
+        '200':
+          description: Shopping list item removed successfully
+      description: Deletes shopping list item
+  /api/docs:
+    get:
+      summary: Return currrent documentation
+      tags: []
+      responses:
+        '200':
+          description: Binary file of OpenApi 3 documentation
+        '404':
+          description: Not Found
+      operationId: get-api-docs
+components:
+  schemas:
+    ShoppingListDto:
+      title: ShoppingListDto
+      type: object
+      x-examples: {}
+      properties:
+        hash:
+          type: string
+        name:
+          type: string
+        shoppingListItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingListItemDto'
+    ShoppingListItemDto:
+      title: ShoppingListItemDto
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        taken:
+          type: boolean
+        quantity:
+          type: integer
+  responses:
+    ResultResponse:
+      description: Response containing single object
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                oneOf:
+                  - $ref: '#/components/schemas/ShoppingListDto'
+                  - $ref: '#/components/schemas/ShoppingListItemDto'
+    CollectionResponse:
+      description: Response containing an array of objects
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: '#/components/schemas/ShoppingListDto'
+                    - $ref: '#/components/schemas/ShoppingListItemDto'
+  securitySchemes: {}
+servers:
+  - url: 'http://localhost:8000'
+    description: localhost

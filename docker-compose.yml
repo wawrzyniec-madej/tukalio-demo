@@ -1,0 +1,112 @@
+version: '3'
+
+services:
+  shoply-php-fpm:
+    build:
+      context: docker/php-fpm
+    container_name: shoply-php-fpm
+    volumes:
+      - ./backend:/var/www
+    networks:
+      shoply_local_network:
+        ipv4_address: 6.1.0.3
+    restart: "no"
+
+  shoply-nginx:
+    build:
+      context: docker/nginx
+    container_name: shoply-nginx
+    volumes:
+      - ./backend:/var/www
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/sites/:/etc/nginx/sites-available
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d
+    networks:
+      shoply_local_network:
+        ipv4_address: 6.1.0.2
+    restart: "no"
+    links:
+      - shoply-php-fpm
+    ports:
+      - "80:80"
+
+  shoply-mariadb:
+    image: mariadb:10.5.5
+    container_name: shoply-mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: "rootpassword"
+    networks:
+      shoply_local_network:
+        ipv4_address: 6.1.0.1
+    restart: "no"
+    ports:
+      - "3306:3306"
+
+  # the SMTP server starts on port 1025
+  # the HTTP server starts on port 8025
+  shoply-mailhog:
+    image: mailhog/mailhog
+    container_name: shoply-mailhog
+    networks:
+      shoply_local_network:
+        ipv4_address: 6.1.0.6
+    restart: "no"
+
+  composer:
+    image: composer:latest
+    container_name: shoply-composer
+    volumes:
+      - ./backend:/var/www
+      - ./backend:/app
+    networks:
+      - shoply_local_network
+    restart: "no"
+
+  console:
+    build:
+      context: docker/php-fpm
+    entrypoint: php bin/console
+    user: ${UID}:${GID}
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - shoply_local_network
+    restart: "no"
+
+  phpunit:
+    build:
+      context: docker/php-fpm
+    entrypoint: vendor/bin/phpunit
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - shoply_local_network
+    restart: "no"
+
+  phpstan:
+    build:
+      context: docker/php-fpm
+    entrypoint: vendor/bin/phpstan
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - shoply_local_network
+    restart: "no"
+
+  yarn:
+    build:
+      context: docker/node
+    container_name: shoply-yarn
+    ports:
+      - "3000:3000"
+    entrypoint: yarn
+    volumes:
+      - ./front:/app
+    networks:
+      shoply_local_network:
+        ipv4_address: 6.1.0.8
+
+networks:
+  shoply_local_network:
+    external:
+      name: shoply_local_network
